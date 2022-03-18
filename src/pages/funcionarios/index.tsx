@@ -10,32 +10,49 @@ import {
 } from "native-base";
 import 'intl';
 import 'intl/locale-data/jsonp/pt-BR';
-import { useNavigation } from '@react-navigation/native';
+import {
+    useNavigation,
+    useRoute,
+    RouteProp
+} from '@react-navigation/native';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { toDate } from 'date-fns-tz';
-import { format, parseISO } from 'date-fns';
+import { format, parse, parseISO } from 'date-fns';
 import BackButton from '../../components/BackButton';
 import Input from '../../components/Input';
 import IFuncionarios from '../../interfaces/IFuncionarios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../../services/api';
 
+type ParamList = {
+    Parametros: {
+        funcionario: IFuncionarios;
+    };
+}
+
 const Funcionarios: React.FC = () => {
     const navigation = useNavigation();
     const [isLoading, setLoading] = useState<boolean>(false);
     const [funcionario, setFuncionario] = useState<IFuncionarios | null>(null);
-    const [funcionarioID, setFuncionarioID] = useState<string>('');
+
     const [dataNascimento, setDataNascimento] = useState<Date>(toDate(new Date()));
     const [nome, setNome] = useState<string>('');
     const [salario, setSalario] = useState<string>('');
     const [exibirDataNascimento, setExibirDataNascimento] = useState<boolean>(false);
+    const route = useRoute<RouteProp<ParamList, 'Parametros'>>();
     const toast = useToast();
 
  
 
 
     useEffect(() => {
-
+        if(route.params.funcionario){
+            const {data_nascimento, nome, id, salario} = route.params.funcionario;
+            setNome(()=>nome);
+            setDataNascimento(()=>new Date(data_nascimento));
+            setSalario(()=>salario.toString());
+            setFuncionario(()=>route.params.funcionario);
+        }
     }, []);
 
 
@@ -56,6 +73,7 @@ const Funcionarios: React.FC = () => {
         setNome(()=>'');
         setSalario(()=>'');
         setDataNascimento(()=>toDate(new Date()));
+        setFuncionario(()=>null);
     }
 
 
@@ -63,19 +81,35 @@ const Funcionarios: React.FC = () => {
         try{
             if (dataNascimento != null && nome.length>0 && salario.length>0) {
                 setLoading(()=>true);
-                const sResult = await api.post(`/funcionarios`,{
-                    "nome": nome,
-                    "data_nascimento": format(parseISO(dataNascimento.toISOString()), 'yyyy/MM/dd'),
-                    "salario": salario,
-                    "empresa": 1
-                });
-                toast.show({
-                    title: "Frigo-Data",
-                    status: "success",
-                    placement: "bottom",
-                    description: "Funcionário adicionado com sucesso!",
-                });
-                _handleLimparCampos();
+                if(funcionario?.id!=0){
+                    const sResult = await api.put(`/funcionarios/${funcionario?.id}`,{
+                        "nome": nome,
+                        "data_nascimento": format(parseISO(dataNascimento.toISOString()), 'yyyy/MM/dd'),
+                        "salario": salario,
+                        "empresa": 1
+                    });
+                    toast.show({
+                        title: "Frigo-Data",
+                        status: "success",
+                        placement: "bottom",
+                        description: "Funcionário alterado com sucesso!",
+                    });
+                    _handleLimparCampos();
+                }else{
+                    const sResult = await api.post(`/funcionarios`,{
+                        "nome": nome,
+                        "data_nascimento": format(parseISO(dataNascimento.toISOString()), 'yyyy/MM/dd'),
+                        "salario": salario,
+                        "empresa": 1
+                    });
+                    toast.show({
+                        title: "Frigo-Data",
+                        status: "success",
+                        placement: "bottom",
+                        description: "Funcionário adicionado com sucesso!",
+                    });
+                    _handleLimparCampos();
+                }
                 
             } else {
                 toast.show({
@@ -96,19 +130,12 @@ const Funcionarios: React.FC = () => {
         setLoading(()=>false);
     };
 
-
-
-
-
-
-
     return (
         <>
             <StatusBar backgroundColor={'#004369'} />
             <BackButton textColor='white' text='Voltar' evento={_handleVoltar} background={'#004369'} />
             <Container>
                 <ContainerFiltro>
-
                 </ContainerFiltro>
                 <ScrollView style={{ flex: 1, width: wp('95%') }}>
                     <Text style={{ marginTop: 10 }}>Nome</Text>
@@ -162,7 +189,7 @@ const Funcionarios: React.FC = () => {
                         isLoading={false}
 
                     />
-                    <Button mt={5} isLoading={isLoading} height={'50px'} leftIcon={<Icon as={Ionicons} name="save-outline" size="sm" /> } onPress={()=>_handleSalvar()}>Salvar</Button>
+                    <Button mt={5} isLoading={isLoading} height={'50px'} leftIcon={<Icon as={Ionicons} name="save-outline" size="sm" /> } onPress={()=>_handleSalvar()}>{funcionario?.id===0?'Salvar':'Alterar'}</Button>
  
                 </ScrollView>
 

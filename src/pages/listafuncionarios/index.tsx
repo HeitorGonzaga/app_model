@@ -76,6 +76,10 @@ const MeusPedidos: React.FC = () => {
         }
     }
 
+    const _handleEditar = async(item: IFuncionarios)=>{
+        navigation.navigate('Funcionarios' as never, {funcionario: item} as never);
+    }
+
     const _handleAdicionarFuncionario = async () => {
         navigation.navigate('Funcionarios' as never, {} as never)
     }
@@ -116,8 +120,11 @@ const MeusPedidos: React.FC = () => {
                                     <Text style={{ color: '#495057' }}>{format(parseISO(item.data_nascimento), 'dd/MM/yyyy')}</Text>
                                 </CardDetalhe>
                             </CardClienteItem>
-                            <CardClienteItem>
-                                <Button style={{ backgroundColor: "#9d0208", }} width={'100%'} mt={2} mb={2} leftIcon={<Icon as={Ionicons} name="save-outline" size="sm" />} onPress={() => {
+                            <CardClienteItem style={{flexDirection:'column'}}>
+                                <Button style={{ backgroundColor: "#023e8a", }} width={'100%'} mt={2} leftIcon={<Icon as={Ionicons} name="create-outline" size="sm" />} onPress={() => {
+                                    _handleEditar(item)
+                                }}>Editar Funcionário</Button>
+                                <Button style={{ backgroundColor: "#9d0208", }} width={'100%'} mt={1} mb={1} leftIcon={<Icon as={Ionicons} name="trash" size="sm" />} onPress={() => {
                                     setFuncionario(() => item);
                                     setIsOpen(() => !isOpen);
                                 }}>Excluir Funcionário</Button>

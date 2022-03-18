@@ -3,4 +3,5 @@ export default interface IAcessoProps{
   empresa: number;
   data_nascimento: Date;
   nome: string;
+  salario: number;
 }
